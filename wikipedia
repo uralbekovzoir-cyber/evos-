@@ -1,0 +1,318 @@
+import asyncio
+import logging
+from aiogram import Bot, Dispatcher, F, types
+from aiogram.filters import CommandStart
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+BOT_TOKEN = "8290403667:AAH-gsZiw4PI17fTdv3OV-2wIFk9zD6Bf_E"
+
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher()
+
+# ----------------- TO'LIQ MA'LUMOTLAR BAZASI -----------------
+UZB_DATA = {
+    "caption": (
+        "🇺🇿 **O'zbekiston Respublikasi**\n\n"
+        "O'zbekiston — Markaziy Osiyodagi davlat. Poytaxti: Toshkent shahri.\n"
+        "Hududi: 448,978 km². Aholisi: 37 milliondan ortiq.\n\n"
+        "Quyidagi viloyatlardan birini tanlang:"
+    ),
+    # Telegram 100% qo'llab-quvvatlaydigan ishonchli PNG rasm havolasi
+    "photo": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f1fa-1f1ff.png",
+    "regions": {
+        "toshkent_v": {
+            "name": "Toshkent viloyati",
+            "info": "Toshkent — Oʻzbekistonning poytaxti va eng yirik shahri, aholisi boʻyicha Markaziy Osiyodagi eng yirik qadimiy shaharlardan biri. Oʻzbekistonning shimoli-sharqiy qismida, Qozogʻiston bilan chegaraga yaqin qismda joylashgan boʻlib, maydoni 631.29 km2 ni tashkil etadi. 2026-yilning 1-iyulidagi maʼlumotlarga koʻra, Toshkent aholisi 3 212 200 nafar kishini (Oʻzbekiston aholisining qariyb 9 foizi) tashkil etadi[1]. 2024-yilning birinchi kvartal maʼlumotlarga koʻra, Toshkent shahrining YIMi $25 milliardni tashkil etadi va bu koʻrsatkich Oʻzbekistondagi eng katta YIMga ega shahar boʻlib kelmoqda[5][6].",
+            "photo": "https://upload.wikimedia.org/wikipedia/commons/d/d2/Toshkent_Viloyati_in_Uzbekistan.svg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original",
+            "districts": {
+                "bekobod_t": {"name": "Bekobod tumani", "info": "Bekobod tumani — qishloq xo'jaligi va sabzavotchilikka ixtisoslashgan."},
+                "buka": {"name": "Bo'ka tumani", "info": "Bo'ka tumani — asosan paxtachilik va g'allachilik rivojlangan."},
+                "bostonliq": {"name": "Bo'stonliq tumani", "info": "Bo'stonliq — tog'li hudud, so'lim dam olish maskanlari va Chorvoq suv ombori joylashgan."},
+                "zangiota": {"name": "Zangiota tumani", "info": "Zangiota — Toshkent shahriga yaqin, aholisi zich joylashgan tuman."},
+                "qibray": {"name": "Qibray tumani", "info": "Qibray — ilmiy-tadqiqot institutlari va bog'dorchilik hududi."},
+                "parkent": {"name": "Parkent tumani", "info": "Parkent — uzumchilik va tog' turizmi bilan mashhur."},
+                "piskent": {"name": "Piskent tumani", "info": "Piskent — sabzavot va chorvachilik rivojlangan tuman."},
+                "orta_chirchiq": {"name": "O'rta Chirchiq tumani", "info": "O'rta Chirchiq — viloyatning markaziy qismida joylashgan."},
+                "chinoz": {"name": "Chinoz tumani", "info": "Chinoz — baliqchilik va dehqonchilik an'analari kuchli hudud."},
+                "yuqori_chirchiq": {"name": "Yuqori Chirchiq tumani", "info": "Yuqori Chirchiq — qishloq xo'jaligi rivojlangan tuman."},
+                "yangiyol_t": {"name": "Yangiyo'l tumani", "info": "Yangiyo'l — sabzavot va don yetishtirishga ixtisoslashgan."},
+                "olmaliq": {"name": "Olmaliq shahri", "info": "Olmaliq — yirik kon-metallurgiya sanoati markazi."},
+                "angren": {"name": "Angren shahri", "info": "Angren — ko'mir sanoati va energetika shahri."},
+                "chirchiq": {"name": "Chirchiq shahri", "info": "Chirchiq — kimyo sanoati va mashinasozlik markazi."},
+                "yangiyol_sh": {"name": "Yangiyo'l shahri", "info": "Yangiyo'l — kichik sanoat va savdo shahri."},
+                "bekobod_sh": {"name": "Bekobod shahri", "info": "Bekobod — O'zbekiston metallurgiya kombinati joylashgan shahar."}
+            }
+        },
+        "toshkent_sh": {
+            "name": "Toshkent shahri",
+            "info": "Toshkent — Oʻzbekistonning poytaxti va eng yirik shahri, aholisi boʻyicha Markaziy Osiyodagi eng yirik qadimiy shaharlardan biri. Oʻzbekistonning shimoli-sharqiy qismida, Qozogʻiston bilan chegaraga yaqin qismda joylashgan boʻlib, maydoni 631.29 km2 ni tashkil etadi. 2026-yilning 1-iyulidagi maʼlumotlarga koʻra, Toshkent aholisi 3 212 200 nafar kishini (Oʻzbekiston aholisining qariyb 9 foizi) tashkil etadi[1]. 2024-yilning birinchi kvartal maʼlumotlarga koʻra, Toshkent shahrining YIMi $25 milliardni tashkil etadi va bu koʻrsatkich Oʻzbekistondagi eng katta YIMga ega shahar boʻlib kelmoqda[5][6].",
+            "photo": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/16/Tashkent_City_Park_at_night_2019.jpg/250px-Tashkent_City_Park_at_night_2019.jpg?utm_source=uz.wikipedia.org&utm_campaign=parser&utm_content=thumbnail",
+            "districts": {
+                "bektemir": {"name": "Bektemir tumani", "info": "Bektemir — poytaxtning janubi-sharqiy qismidagi sanoat va turar-joy tumani."},
+                "mirzo_ulugbek": {"name": "Mirzo Ulug'bek tumani", "info": "Mirzo Ulug'bek — ilmiy markazlar va oliy o'quv yurtlari ko'p joylashgan hudud."},
+                "mirobod": {"name": "Mirobod tumani", "info": "Mirobod — poytaxtning markaziy qismi, temir yo'l boshqarmasi joylashgan."},
+                "sergeli": {"name": "Sergeli tumani", "info": "Sergeli — yirik sanoat korxonalari va yangi uylar qurilayotgan tuman."},
+                "uchtepa": {"name": "Uchtepa tumani", "info": "Uchtepa — aholisi zich yashaydigan tinch turar-joy tumani."},
+                "chilonzor": {"name": "Chilonzor tumani", "info": "Chilonzor — savdo markazlari va ko'p qavatli uylar ko'p bo'lgan yirik tuman."},
+                "shayxontohur": {"name": "Shayxontohur tumani", "info": "Shayxontohur — qadimiy yodgorliklar va zamonaviy 'Tashkent City' joylashgan hudud."},
+                "yunusobod": {"name": "Yunusobod tumani", "info": "Yunusobod — teleminora va yirik bozorlar joylashgan gavjum tuman."},
+                "yakkasaroy": {"name": "Yakkasaroy tumani", "info": "Yakkasaroy — elchixonalar va madaniy markazlar joylashgan hudud."},
+                "yangihayot": {"name": "Yangihayot tumani", "info": "Yangihayot — eng yosh sanoat va turar-joy tumanlaridan biri."},
+                "olmazor": {"name": "Olmazor tumani", "info": "Olmazor — talabalar shaharchasi va ishlab chiqarish korxonalari joylashgan."}
+            }
+        },
+        "samarqand_v": {
+            "name": "Samarqand viloyati",
+            "info": "Samarkand[a] is a major city in south-eastern Uzbekistan. Among the oldest continuously inhabited cities in Central Asia, it had a population of 882,000 inhabitants as of 2026,[3] making it the second-largest city in Uzbekistan after Tashkent. It is the capital of the Samarkand Region and a district-level city that includes the urban-type settlements of Kimyogarlar, Farkhod, and Khishrav.[4] It also served as the initial capital of the Uzbek Soviet Socialist Republic from 1925 until 1930.",
+            "photo": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Samarqand_Viloyati_in_Uzbekistan.svg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original",
+            "districts": {
+                "samarqand_sh": {"name": "Samarqand shahri", "info": "Samarqand — jahon tamaddunining gavhari, Registon maydoni bilan mashhur."},
+                "kattaqorgon_sh": {"name": "Kattaqo'rg'on shahri", "info": "Kattaqo'rg'on — viloyatdagi ikkinchi yirik shahar."},
+                "urgut": {"name": "Urgut tumani", "info": "Urgut — yirik savdo bozori va gilamdo'stlik markazi."},
+                "bulungur": {"name": "Bulung'ur tumani", "info": "Bulung'ur — meva-sabzavot yetishtirishga ixtisoslashgan."},
+                "jomboy": {"name": "Jomboy tumani", "info": "Jomboy — Zarafshon daryosi bo'yida joylashgan qulay hudud."},
+                "ishtixon": {"name": "Ishtixon tumani", "info": "Ishtixon — qadimiy tarixga ega dehqonchilik tumani."},
+                "payariq": {"name": "Payariq tumani", "info": "Payariq — Imom Buxoriy majmuasi joylashgan muqaddas hudud."},
+                "pasdargom": {"name": "Pastdarg'om tumani", "info": "Pastdarg'om — paxtachilik va g'allachilik rivojlangan."},
+                "toyloq": {"name": "Toyloq tumani", "info": "Toyloq — Samarqand shahriga tutash qishloq xo'jaligi tumani."}
+            }
+        },
+        "buxoro_v": {
+            "name": "Buxoro viloyati",
+            "info": "Buxoro — Oʻzbekiston Respublikasining qadimiy shaharlaridan biri, Buxoro viloyatining maʼmuriy, iqtisodiy va madaniy markazi. Oʻzbekistonning ilk poytaxti hisoblanadi. Buyuk ipak yoʻlida yirik tijorat markazlaridan boʻlgan. Oʻzbekistonning janubiy-gʻarbida, Zarafshon daryosi quyi oqimida joylashgan. Toshkentdan 616 km. Buxoro 2 ta shahar rayoni (Fayzulla Xoʻjayev va Toʻqimachilik)ga boʻlingan. Aholisi 290 000 (2019). Aholisining katta qismini oʻzbeklar tashkil etadi. Oliy taʼlim muassasalari: Buxoro davlat universiteti, Buxoro davlat pedagogika instituti, Buxoro muhandislik-texnologiya instituti.",
+            "photo": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Buxoro_Viloyati_in_Uzbekistan.svg?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=original",
+            "districts": {
+                "buxoro_sh": {"name": "Buxoro shahri", "info": "Buxoro — dunyoga mashhur me'moriy obidalar va Minorai Kalon shahri."},
+                "kogon_sh": {"name": "Kogon shahri", "info": "Kogon — yirik temir yo'l traksi va sanoat markazi."},
+                "gijduvon": {"name": "G'ijduvon tumani", "info": "G'ijduvon — hunarmandchilik, kulolchilik va shirinliklari bilan mashhur."},
+                "romitan": {"name": "Romitan tumani", "info": "Romitan — qadimiy tarixga ega to'qimachilik va dehqonchilik tumani."},
+                "qorako l": {"name": "Qorako'l tumani", "info": "Qorako'l — qorako'lchilik va ta'lim sohasidagi yutuqlari bilan tanilgan."},
+                "olot": {"name": "Olot tumani", "info": "Olot — viloyatning janubi-g'arbiy qismidagi dehqonchilik tumani."}
+            }
+        },
+        "fargona_v": {
+            "name": "Farg'ona viloyati",
+            "info": "Fergana (/fɜːrˈɡɑːnə/; Uzbek: Fargʻona, pronounced [farʁɒˈna]) is a district-level city and the capital of Fergana Region in eastern Uzbekistan.[3] Fergana is about 320 km (200 mi) east of Tashkent, about 75 km southwest of Andijan, and less than 20 kilometres (12 mi) from the Kyrgyzstan border. The modern city was founded in 1876.",
+            "photo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRvVxKGP99bBJhCQFH_w7Ld0-f33qisMrsaIpHpGlIJLQ&s=10",
+            "districts": {
+                "fargona_sh": {"name": "Farg'ona shahri", "info": "Farg'ona — yashil tabiatli, sanoati rivojlangan viloyat markazi."},
+                "margilon": {"name": "Marg'ilon shahri", "info": "Marg'ilon — o'zbek adras va shoyi to'qishning markazi."},
+                "qoqon": {"name": "Qo'qon shahri", "info": "Qo'qon — qadimiy xonlik poytaxti, hunarmandlar shahri."},
+                "quvasoy": {"name": "Quvasoy shahri", "info": "Quvasoy — sement va qurilish materiallari ishlab chiqariladigan shahar."},
+                "rishton": {"name": "Rishton tumani", "info": "Rishton — Markaziy Osiyodagi eng yirik kulolchilik markazi."},
+                "quva": {"name": "Quva tumani", "info": "Quva — meva-sabzavot, ayniqsa anorlari bilan mashhur."},
+                "beshariq": {"name": "Beshariq tumani", "info": "Beshariq — dehqonchilik va bog'dorchilik rivojlangan tuman."}
+            }
+        },
+        "andijon_v": {
+            "name": "Andijon viloyati",
+            "info": "Andijon — hunarmandlar, tadbirkorlar va bog'bonlar yurti.",
+            "photo": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f1fa-1f1ff.png",
+            "districts": {
+                "andijon_sh": {"name": "Andijon shahri", "info": "Andijon — yirik mashinasozlik va savdo markazi."},
+                "xonabod": {"name": "Xonobod shahri", "info": "Xonobod — xushmanzara tabiatli dam olish maskani."},
+                "asaka": {"name": "Asaka tumani", "info": "Asaka — yirik avtomobilsozlik zavodi (UzAuto Motors) joylashgan shahar."},
+                "shahrixon": {"name": "Shahrixon tumani", "info": "Shahrixon — pichoqchilik va hunarmandchilik markazi."},
+                "marhamat": {"name": "Marhamat tumani", "info": "Marhamat — qadimiy Mingtepa shahri joylashgan tarixiy tuman."}
+            }
+        },
+        "namangan_v": {
+            "name": "Namangan viloyati",
+            "info": "Namangan — gullar shahri, yengil sanoat va tadbirkorlik markazi.",
+            "photo": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f1fa-1f1ff.png",
+            "districts": {
+                "namangan_sh": {"name": "Namangan shahri", "info": "Namangan — viloyat markazi, yengil sanoat va gullar festivali o'tkaziladigan shahar."},
+                "chust": {"name": "Chust tumani", "info": "Chust — milliy pichoqlari va do'ppilari bilan dunyoga mashhur."},
+                "kosonsoy": {"name": "Kosonsoy tumani", "info": "Kosonsoy — tog'oldi hududi, bog'dorchilik va kurort joy."},
+                "pop": {"name": "Pop tumani", "info": "Pop — viloyatdagi eng yirik tumanlardan biri, tog'-kon sanoati bor."}
+            }
+        },
+        "qashqadaryo_v": {
+            "name": "Qashqadaryo viloyati",
+            "info": "Qashqadaryo — neft, gaz va qishloq xo'jaligi salohiyati yuqori bo'lgan hudud.",
+            "photo": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f1fa-1f1ff.png",
+            "districts": {
+                "qarshi_sh": {"name": "Qarshi shahri", "info": "Qarshi — qadimiy tarixga ega viloyat markazi, gaz sanoati bazasi."},
+                "shahrisabz_sh": {"name": "Shahrisabz shahri", "info": "Shahrisabz — Amir Temurning vatani, Oqsaroy majmuasi joylashgan."},
+                "kitob": {"name": "Kitob tumani", "info": "Kitob — tog'li hudud, meva va gilamchilikka boy."},
+                "koson": {"name": "Koson tumani", "info": "Koson — qadimiy shahar o'rnida joylashgan yirik dehqonchilik tumani."},
+                "guzor": {"name": "G'uzor tumani", "info": "G'uzor — neft-gaz sanoati va energetika markazi."}
+            }
+        },
+        "surxondaryo_v": {
+            "name": "Surxondaryo viloyati",
+            "info": "Surxondaryo — O'zbekistonning eng janubiy, quyoshli va issiq o'lkasi.",
+            "photo": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f1fa-1f1ff.png",
+            "districts": {
+                "termez_sh": {"name": "Termiz shahri", "info": "Termiz — qadimiy port shahri va viloyat markazi."},
+                "denov": {"name": "Denov tumani", "info": "Denov — bog'dorchilik va savdo markazi, eng sersuv tuman."},
+                "boysun": {"name": "Boysun tumani", "info": "Boysun — UNESCO tomonidan madaniy meros deb e'lon qilingan betakror hudud."},
+                "sherobod": {"name": "Sherobod tumani", "info": "Sherobod — mashhur Sherobod anori va qovunlari vatani."}
+            }
+        },
+        "navoiy_v": {
+            "name": "Navoiy viloyati",
+            "info": "Navoiy — yirik sanoat, konchilik va oltin ishlab chiqarish markazi.",
+            "photo": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f1fa-1f1ff.png",
+            "districts": {
+                "navoiy_sh": {"name": "Navoiy shahri", "info": "Navoiy — zamonaviy va ozoda sanoat shahri."},
+                "zarafshon": {"name": "Zarafshon shahri", "info": "Zarafshon — ulkan oltin koni ustiga qurilgan shahar."},
+                "nurota": {"name": "Nurota tumani", "info": "Nurota — ziyoratgohlari va buloqlari bilan mashhur qadimiy tuman."},
+                "karmana": {"name": "Karmana tumani", "info": "Karmana — qadimiy madaniy markazlardan biri."}
+            }
+        },
+        "jizzax_v": {
+            "name": "Jizzax viloyati",
+            "info": "Jizzax — tog'lari va dashtlari uyg'unlashgan markaziy hudud.",
+            "photo": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f1fa-1f1ff.png",
+            "districts": {
+                "jizzax_sh": {"name": "Jizzax shahri", "info": "Jizzax — viloyat markazi, savdo va transport tuguni."},
+                "zomin": {"name": "Zomin tumani", "info": "Zomin — O'zbekistonning 'Shveysariyasi' deb ataluvchi dam olish maskani."},
+                "gallaorol": {"name": "G'allaorol tumani", "info": "G'allaorol — lalmikor dehqonchilik va g'allachilik markazi."},
+                "forish": {"name": "Forish tumani", "info": "Forish — eng yirik tumanlardan biri, Aydar ko'li joylashgan."}
+            }
+        },
+        "sirdaryo_v": {
+            "name": "Sirdaryo viloyati",
+            "info": "Sirdaryo — paxta va g'alla yetishtirishga ixtisoslashgan dasht o'lkasi.",
+            "photo": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f1fa-1f1ff.png",
+            "districts": {
+                "guliston_sh": {"name": "Guliston shahri", "info": "Guliston — viloyat markazi, talabalar va paxtakorlar shahri."},
+                "yangiyer": {"name": "Yangiyer shahri", "info": "Yangiyer — Mirzacho'lni o'zlashtiruvchilar shahri."},
+                "shirin": {"name": "Shirin shahri", "info": "Shirin — energetiklar shahri (Sirdaryo IES joylashgan)."},
+                "sardoba": {"name": "Sardoba tumani", "info": "Sardoba — qishloq xo'jaligi va dehqonchilik tumani."}
+            }
+        },
+        "xorazm_v": {
+            "name": "Xorazm viloyati",
+            "info": "Xorazm — qadimiy asotirlar, Lazzat va Raqs san'ati vatani.",
+            "photo": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f1fa-1f1ff.png",
+            "districts": {
+                "urganch_sh": {"name": "Urganch shahri", "info": "Urganch — viloyat markazi, zamonaviy va ko'rkam shahar."},
+                "xiva_sh": {"name": "Xiva shahri", "info": "Xiva — ochiq osmon ostidagi muzey, Ichan-qal'a majmuasi joylashgan."},
+                "gurlan": {"name": "Gurlan tumani", "info": "Gurlan — dehqonchilik va bog'dorchilikka boy qadimiy tuman."},
+                "shovot": {"name": "Shovot tumani", "info": "Shovot — kanal bo'yida joylashgan yirik qishloq xo'jaligi tumani."}
+            }
+        },
+        "qoraqalpogiston": {
+            "name": "Qoraqalpog'iston Respublikasi",
+            "info": "Qoraqalpog'iston — mamlakatimizning shimoliy qismidagi suveren respublika.",
+            "photo": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f1fa-1f1ff.png",
+            "districts": {
+                "nukus_sh": {"name": "Nukus shahri", "info": "Nukus — Qoraqalpog'iston poytaxti, dunyoga mashhur Savitskiy nomidagi san'at muzeyi bor."},
+                "moynoq": {"name": "Mo'ynoq tumani", "info": "Mo'ynoq — Orol dengizining sobiq port shahri, kema qabristoni bilan mashhur."},
+                "beruniy": {"name": "Beruniy tumani", "info": "Beruniy — Amudaryo bo'yida joylashgan dehqonchilik tumani."},
+                "tortkol": {"name": "To'rtko'l tumani", "info": "To'rtko'l — tarixiy qadimiy qal'alar yaqinida joylashgan markaziy tuman."},
+                "chimboy": {"name": "Chimboy tumani", "info": "Chimboy — dehqonchilik va hunarmandchilik rivojlangan hudud."}
+            }
+        }
+    }
+}
+
+
+def get_regions_keyboard():
+    keyboard = []
+    row = []
+    for key, data in UZB_DATA["regions"].items():
+        row.append(InlineKeyboardButton(text=data["name"], callback_data=f"reg:{key}"))
+        if len(row) == 2:
+            keyboard.append(row)
+            row = []
+    if row:
+        keyboard.append(row)
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+def get_districts_keyboard(reg_key):
+    keyboard = []
+    row = []
+    districts = UZB_DATA["regions"][reg_key]["districts"]
+    
+    for dist_key, dist_data in districts.items():
+        row.append(InlineKeyboardButton(text=dist_data["name"], callback_data=f"dist:{reg_key}:{dist_key}"))
+        if len(row) == 2:
+            keyboard.append(row)
+            row = []
+    if row:
+        keyboard.append(row)
+        
+    keyboard.append([InlineKeyboardButton(text="⬅️ Bosh sahifaga qaytish", callback_data="back_to_main")])
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+@dp.message(CommandStart())
+async def cmd_start(message: types.Message):
+    await message.answer_photo(
+        photo=UZB_DATA["photo"],
+        caption=UZB_DATA["caption"],
+        reply_markup=get_regions_keyboard(),
+        parse_mode="Markdown"
+    )
+
+
+@dp.callback_query(F.data == "back_to_main")
+async def back_to_main(call: types.CallbackQuery):
+    await call.message.answer_photo(
+        photo=UZB_DATA["photo"],
+        caption=UZB_DATA["caption"],
+        reply_markup=get_regions_keyboard(),
+        parse_mode="Markdown"
+    )
+    await call.message.delete()
+    await call.answer()
+
+
+@dp.callback_query(F.data.startswith("reg:"))
+async def show_region(call: types.CallbackQuery):
+    reg_key = call.data.split(":")[1]
+    region = UZB_DATA["regions"].get(reg_key)
+
+    if region:
+        caption = (
+            f"📍 **{region['name']}**\n\n"
+            f"{region['info']}\n\n"
+            f"Quyidagi tumanlar va shaharlardan birini tanlang:"
+        )
+        await call.message.answer_photo(
+            photo=region["photo"],
+            caption=caption,
+            reply_markup=get_districts_keyboard(reg_key),
+            parse_mode="Markdown"
+        )
+        await call.message.delete()
+    await call.answer()
+
+
+@dp.callback_query(F.data.startswith("dist:"))
+async def show_district(call: types.CallbackQuery):
+    _, reg_key, dist_key = call.data.split(":")
+    region = UZB_DATA["regions"].get(reg_key)
+    district = region["districts"].get(dist_key)
+
+    if district:
+        caption = (
+            f"🏙 **{district['name']}**\n\n"
+            f"{district['info']}"
+        )
+        
+        back_kb = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="⬅️ Orqaga", callback_data=f"reg:{reg_key}")]
+        ])
+
+        await call.message.answer_photo(
+            photo=region["photo"],
+            caption=caption,
+            reply_markup=back_kb,
+            parse_mode="Markdown"
+        )
+        await call.message.delete()
+    await call.answer()
+
+
+async def main():
+    logging.basicConfig(level=logging.INFO)
+    print("Bot xatolarsiz muvaffaqiyatli ishga tushdi!")
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
