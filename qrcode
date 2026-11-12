@@ -1,0 +1,53 @@
+import asyncio
+import logging
+import sys
+from aiogram import Bot, Dispatcher, F
+from aiogram.filters import CommandStart
+from aiogram.types import Message, FSInputFile
+import qrcode
+
+TOKEN = "8290403667:AAH-gsZiw4PI17fTdv3OV-2wIFk9zD6Bf_E"
+
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
+
+
+@dp.message(CommandStart())
+async def command_start_handler(message: Message):
+    await message.answer(
+        f"Salom, {message.from_user.full_name}! Menga istalgan matn yoki "
+        f"havola yuboring, men undan QR-kod yasab beraman."
+    )
+
+
+@dp.message()
+async def qr_code_make(message: Message):
+    matn = message.text
+    if matn is not None:
+        img = qrcode.make(matn)
+        img.save("qrcode.png")
+
+        rasm = FSInputFile("qrcode.png")
+        await message.answer_photo(
+            photo=rasm, 
+            caption=f"Mana sizning QR-codingiz: \n<code>{matn}</code>"
+        )
+
+
+
+
+
+
+
+
+
+
+
+
+async def main():
+    await dp.start_polling(bot)
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    asyncio.run(main())
