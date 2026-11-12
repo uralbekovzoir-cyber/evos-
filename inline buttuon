@@ -1,0 +1,80 @@
+
+import asyncio
+import aiohttp
+from aiogram import Bot, Dispatcher, html, F
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
+from aiogram.filters import CommandStart, Command
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
+
+TOKEN = "8290403667:AAH-gsZiw4PI17fTdv3OV-2wIFk9zD6Bf_E"
+
+dp = Dispatcher()
+
+
+@dp.message(CommandStart())
+async def command_start_handler(message: Message):
+    btns = ReplyKeyboardMarkup(
+        keyboard=[
+            [
+                KeyboardButton(text="salom"),
+                KeyboardButton(text="hello")
+            ],
+            [KeyboardButton(text="tabiat")],
+            [
+                KeyboardButton(text="help"),
+                KeyboardButton(text="contact"),
+                KeyboardButton(text="info")
+            ]
+        ],
+        resize_keyboard=True
+    )
+
+    await message.answer(
+        f"Hello, {html.bold(message.from_user.full_name)}!",
+        reply_markup=btns
+    )
+
+
+@dp.message(F.text)
+async def get_all(message: Message):
+    matn = message.text.lower()
+
+    if matn in ["salom", "hello"]:
+        await message.answer("Salom! Sizga qanday yordam bera olaman?")
+
+    elif matn == "tabiat":
+        await message.answer(
+            "🌿 Tabiat — bizni o'rab turgan olam: "
+            "o'simliklar, hayvonlar va atrof-muhit."
+        )
+
+    elif matn == "help":
+        await message.answer(
+            "Sizga qanday yordam bera olamiz? "
+            "Yordam kerak bo'lsa, texnik yordamga murojaat qiling."
+        )
+
+    elif matn == "contact":
+        await message.answer("📩 Biz bilan aloqa: +998950791715")
+
+    elif matn == "info":
+        await message.answer(
+            "🤖 Bu Aiogram asosida yaratilgan Telegram bot."
+        )
+
+    else:
+        await message.answer("Kechirasiz, bu buyruqni tushunmadim.")
+
+
+async def main():
+    bot = Bot(
+        token=TOKEN,
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+    )
+
+    await dp.start_polling(bot)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
