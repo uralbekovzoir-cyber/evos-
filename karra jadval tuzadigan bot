@@ -1,0 +1,52 @@
+import asyncio
+import logging
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import CommandStart
+
+# @BotFather dan olingan tokenni shu yerga qo'ying
+BOT_TOKEN = "8290403667:AAH-gsZiw4PI17fTdv3OV-2wIFk9zD6Bf_E"
+
+# Loglarni yoqish (xatoliklarni ko'rib turish uchun)
+logging.basicConfig(level=logging.INFO)
+
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher()
+
+# /start buyrug'i uchun javob
+@dp.message(CommandStart())
+async def cmd_start(message: types.Message):
+    await message.answer(
+        "Assalomu alaykum! Menga istalgan sonni yuboring, "
+        "men sizga o'sha sonning karra jadvalini yozib beraman.\n"
+        "Masalan: 2"
+    )
+
+# Foydalanuvchi yuborgan xabarlarni qayta ishlash
+@dp.message()
+async def multiplication_table(message: types.Message):
+    text = message.text.strip()
+    
+    # Yuborilgan matn son ekanligini tekshiramiz
+    if text.isdigit():
+        num = int(text)
+        
+        # Juda katta son yuborilsa xabar uzun bo'lib ketmasligi uchun cheklov
+        if num > 1000000:
+            await message.answer("Iltimos, kichikroq son kiriting.")
+            return
+
+        # 1 dan 10 gacha karra jadvalini shakllantirish
+        jadval = f"🔢 **{num} karra jadvali:**\n\n"
+        for i in range(1, 11):
+            jadval += f"{num} × {i} = {num * i}\n"
+            
+        await message.answer(jadval, parse_mode="Markdown")
+    else:
+        await message.answer("Iltimos, faqat butun son yuboring (masalan: 2, 5, 9).")
+
+# Botni ishga tushirish
+async def main():
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
