@@ -1,0 +1,34 @@
+import telebot
+
+# @BotFather dan olgan tokekingizni shu yerga yozing
+BOT_TOKEN = "8290403667:AAH-gsZiw4PI17fTdv3OV-2wIFk9zD6Bf_E"
+bot = telebot.TeleBot(BOT_TOKEN)
+
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(
+        message, 
+        "Salom! 📐 Men matematik misollarni yechib beruvchi botman.\n\nMenga istalgan misolni yozing (masalan: `25 * 4 + 15 / 3`), men natijasini chiqarib beraman."
+    )
+
+@bot.message_handler(func=lambda message: True)
+def solve_math(message):
+    text = message.text.strip()
+    
+    # Faqat raqamlar va matematik amallarga ruxsat berish (xavfsizlik uchun)
+    allowed_chars = "0123456789+-*/(). "
+    if not all(c in allowed_chars for c in text):
+        bot.reply_to(message, "❌ Iltimos, faqat matematik ifodalarni kiriting (masalan: 12 + 8 * 2).")
+        return
+
+    try:
+        # Python'ning eval funksiyasi yordamida misolni hisoblash
+        result = eval(text)
+        bot.reply_to(message, f"✅ **Natija:**\n`{text} = {result}`", parse_mode="Markdown")
+    except ZeroDivisionError:
+        bot.reply_to(message, "❌ Xatolik: Nsonga (nolga) bo'lish mumkin emas!")
+    except Exception:
+        bot.reply_to(message, "❌ Xatolik: Misolni noto'g'ri formatda kiritdingiz.")
+
+print("Matematik bot ishga tushdi...")
+bot.infinity_polling()
