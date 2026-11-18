@@ -1,0 +1,52 @@
+import telebot
+import wikipedia
+
+# BotFather'dan olingan tokenni shu yerga qo'ying
+BOT_TOKEN = "8290403667:AAH-gsZiw4PI17fTdv3OV-2wIFk9zD6Bf_E"
+
+bot = telebot.TeleBot(BOT_TOKEN)
+
+# Vikipediya tilini o'zbek tiliga o'tkazamiz
+wikipedia.set_lang("uz")
+
+# /start buyrug'i bosilganda ishlaydigan qism
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(
+        message, 
+        "Assalomu alaykum! Menga qanday yordam kerak?\n"
+        "Biror mavzu yoki so'z yozing, men uni Vikipediyadan qidirib qisqacha ma'lumot beraman."
+    )
+
+# Foydalanuvchi yozgan har qanday matnni qabul qilib, Vikipediyadan qidirish
+@bot.message_handler(func=lambda message: True)
+def search_wikipedia(message):
+    query = message.text
+    
+    # Foydalanuvchiga qidirilayotganini bildirish uchun "yozmoqda..." holatini yoqamiz
+    bot.send_chat_action(message.chat.id, 'typing')
+    
+    try:
+        # sentences=3 — maqolaning dastlabki 3 ta gapini qisqartirib oladi
+        result = wikipedia.summary(query, sentences=3)
+        bot.reply_to(message, result)
+        
+    except wikipedia.exceptions.DisambiguationError as e:
+        # Agar so'z bir nechta ma'noga ega bo'lsa
+        options = "\n".join(e.options[:5])
+        bot.reply_to(
+            message, 
+            f"Bu so'z bo'yicha bir nechta maqola topildi. Aniqroq yozing:\n\n{options}"
+        )
+        
+    except wikipedia.exceptions.PageError:
+        # Maqola topilmasa
+        bot.reply_to(message, "Kechirasiz, Vikipediyadan bu mavzuda ma'lumot topilmadi.")
+        
+    except Exception as e:
+        # Boshqa kutilmagan xatoliklar uchun
+        bot.reply_to(message, "Xatolik yuz berdi. Birozdan so'ng qayta urinib ko'ring.")
+
+# Botni uzluksiz ishlatish
+print("Bot ishga tushdi...")
+bot.infinity_polling()
